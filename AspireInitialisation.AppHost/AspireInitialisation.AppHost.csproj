@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Sdk Name="Aspire.AppHost.Sdk" Version="9.0.0" />
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>4ad1c4c7-1f0b-46b6-bfc7-1e01805e491f</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AspireInitialisation.ApiService\AspireInitialisation.ApiService.csproj" />
+    <ProjectReference Include="..\AspireInitialisation.DbMigrations\AspireInitialisation.DbMigrations.csproj" />
+    <ProjectReference Include="..\AspireInitialisation.Web\AspireInitialisation.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" Version="9.0.0" />
+    <PackageReference Include="Aspire.Hosting.Redis" Version="9.0.0" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.0.0" />
+  </ItemGroup>
+
+</Project>
