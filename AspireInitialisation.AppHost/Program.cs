@@ -32,13 +32,6 @@ db.WithInitialiser(migrator);
 var app = builder.AddProject<AspireInitialisation_ApiService>("app")
     .WaitFor(db);
 
-//TODO: I've broken something with AfterResourcesCreatedEvent - this event now fires way later than I think it should
-builder.Eventing.Subscribe<AfterResourcesCreatedEvent>((evt, ct) =>
-{
-    return Task.CompletedTask;
-});
-
 builder
-    .WithInitialisationHealthChecks()
     .Build()
     .Run();
