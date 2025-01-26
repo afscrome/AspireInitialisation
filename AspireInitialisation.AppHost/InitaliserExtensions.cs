@@ -21,28 +21,22 @@ public static class InitialiserExtensions
         var targetResource = builder.Resource;
         var initialiserResource = initialiser.Resource;
 
-        builder.ApplicationBuilder.Eventing.Subscribe<BeforeResourceStartedEvent>(initialiserResource, BlockUntilTargetIsInitialiseable);
+        var taskCompletionSource = new TaskCompletionSource();
 
-        //TODO: can this be replaced with initaliser.WaitForCompletion(builder);
-        // Would still need BlockUntilTargetIsInitialiseable
+        builder.ApplicationBuilder.Eventing.Subscribe<BeforeResourceStartedEvent>(initialiserResource, async (evt, ct) =>
+        {
+            var logger = evt.Services.GetRequiredService<ResourceLoggerService>().GetLogger(initialiserResource);
+            logger.LogInformation("Waiting for {Resource} to be initialisable", targetResource.Name);
+            await taskCompletionSource.Task.WaitAsync(ct);
+        });
+
+
         return WithInitialiser(builder, initialiserResource.Name, WaitForInitialiserToComplete);
 
 
-        async Task BlockUntilTargetIsInitialiseable(BeforeResourceStartedEvent evt, CancellationToken cancellationToken)
-        {
-            var logger = evt.Services.GetRequiredService<ResourceLoggerService>().GetLogger(evt.Resource);
-            logger.LogInformation("Waiting for resource '{Resource}' to become initialisable", targetResource.Name);
-
-            var resourceNotificationService = evt.Services.GetRequiredService<ResourceNotificationService>();
-            await resourceNotificationService.PublishUpdateAsync(evt.Resource, s => s with { State = KnownResourceStates.Waiting });
-
-            await InitialiserHealthCheckDistributedApplicationLifecycleHook.WaitUntilInitialisersCanRun(resourceNotificationService, targetResource, cancellationToken);
-            logger.LogInformation("Finished waiting for resource '{Resource}'", targetResource.Name);
-            await resourceNotificationService.PublishUpdateAsync(evt.Resource, s => s with { State = KnownResourceStates.Starting });
-        }
-
         async Task WaitForInitialiserToComplete(InitialisationContext context)
         {
+            taskCompletionSource.TrySetResult();
             var resourceNotificationService = context.Services.GetRequiredService<ResourceNotificationService>();
 
             var evt = await resourceNotificationService.WaitForResourceAsync(initialiserResource.Name, evt => KnownResourceStates.TerminalStates.Contains(evt.Snapshot.State?.Text), context.CancellationToken);
