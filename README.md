@@ -34,7 +34,8 @@ var migrator = builder.AddExecutable("db-migrations", "dotnet-ef", "..")
         "--connection", database.Resource.ConnectionStringExpression,
         "--project", new Projects.AspireInitialisation_DbMigrations().ProjectPath,
         "--no-build",
-        "-v");
+        "-v")
+    .WithParentRelationship(database);
 
 database.AddInitialiser("migrator", migrator);
 ```
